@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambio de estado</title>
+</head>
+
+<body>
+
+    <style>
+        .pre-loader { position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 16px solid #000000;
+            border-top: 16px solid #d103ec;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 2s linear infinite;
+            display: none;
+        }
+        .pre-loader::backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .shape-animation {
+            width: 100px;
+            height: 100px;
+            background-color:rgb(226, 2, 255);
+            animation: moveShape 1.9s ease-in-out infinite;
+            display: none;
+            z-index: -2;
+            position: relative;
+            transform: matrix3d(1, 0, 0, 0,
+0, 1, 0.5, 0,
+0, -0.5,1, 0,
+30,50, 0, 1);
+        }
+
+        @keyframes moveShape {
+            0% {
+                transform: translate(0, 0);
+                background-color: rgba(255, 0, 255, 0.596);
+                border: 2px solid magenta;
+                top: 0px;
+            }
+
+            50% {
+                transform: translate(200px, 0) rotate(180deg) scale(2.5);
+                background-color: rgba(0, 162, 255, 0.63);
+                border: 2px solid rgb(0, 195, 255);
+                top: 200px;
+            }
+
+            75% {
+                transform: translate(200px, 250px) rotate(180deg) scale(3.5);
+                background-color: rgba(0, 255, 136, 0.596);
+                border: 2px solid rgb(4, 240, 130);
+                top: 250px;
+            }
+
+            100% {
+                transform: translate(350px, 350px) rotate3d(1, 1, 1, 250deg) skew(180deg) scale(15.5) ;
+                top: 200px;
+                right: 200;
+                background-color: rgba(156, 40, 156, 0.37);
+                border: 2px solid rgb(253, 75, 253);
+            }
+        }
+    </style>
+    <div class="pre-loader"></div>
+    <main class="main-page">
+        <div class="shape-animation"></div>
+        <h1>Cambio de estado</h1>
+        <button id="Button">Estado inicial </button>
+        <div id="contenido">Contenido inicial</div>
+
+    </main>
+
+
+
+    <script type="text/javascript">
+        const button = document.getElementById('Button');
+        const contenido = document.getElementById('contenido');
+        const shapeAnimation = document.querySelector('.shape-animation');
+        const loader = document.querySelector('.pre-loader');
+        const mainPage = document.querySelector('.main-page');
+
+        const estadoCargando = () => {
+            button.textContent = 'Mostrar animación de carga';
+            button.disabled = true;
+            contenido.textContent = 'mostrar animación de carga';
+            shapeAnimation.style.display = 'block';
+            
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, 2000);
+            });
+        }
+        
+        button.addEventListener('click', async () => {
+            await estadoCargando();
+            
+            button.textContent = 'Estado Final';
+            button.disabled = false;
+            contenido.textContent = 'Contenido Final - Proceso completado';
+            shapeAnimation.style.display = 'none';
+            loader.style.display = 'none'; 
+            window.location.href = 'https://www.duckduckgo.com/?q=llevar+al+usuario+a+otra+pagina&t=h_&ia=web';
+        });
+        
+        window.addEventListener('load', () => {
+            loader.style.display = 'block';
+            mainPage.style.display = 'none';
+            // mainPage.style.display = 'none';
+            setTimeout(() => {
+                showPage();
+            }, 2500);
+             
+        });
+
+            function showPage() {
+                document.querySelector('.pre-loader').style.display = 'none';
+                mainPage.style.display = 'block';
+            }
+    </script>
+
+</body>
+
+</html>
