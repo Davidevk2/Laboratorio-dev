@@ -139,6 +139,32 @@
             outline: none;
         }
 
+        textarea {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            color: var(--text-color);
+            border-radius: 5px;
+            resize: none;
+            overflow-y: hidden;
+            min-height: 40px;
+            max-height: 120px; /* 4 líneas aproximadamente (30px por línea) */
+            line-height: 30px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: height 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        textarea.scrollable {
+            overflow-y: auto;
+        }
+
         .is-processing {
             animation: reactor-pulse-gold 1.5s infinite ease-in-out;
             border: 1px solid rgba(204, 0, 255, 1);
@@ -238,8 +264,8 @@
 
     <main>
         <section class="main panel">
-            <input type="text"
-                placeholder="Type your message here or press the spacebar to start recording your voice and convert it to text.">
+            <textarea id="input-prompt" rows="1"
+                placeholder="Type your message here or press the spacebar to start recording your voice and convert it to text."></textarea>
             <input type="file">
             <div class="panel-buttons">
                 <button id="copy-button" onclick="copyTranscript()">Copy</button>
@@ -248,6 +274,8 @@
             <select name="" id="" class="select-lang">
                 <option value="en">en</option>
                 <option value="es">es</option>
+                <option value="pt">pt</option>
+                <option value="de">de</option>
             </select>
 
         </section>
@@ -256,104 +284,187 @@
     <script type="text/javascript">
 
         //ToDO List:
-        // - [ ] Add a button to stop recording
-        // - [ ] Add a button to clear the transcript
-        // - [ ] change language to spanish
-        // - [ ] input to write 
-        // - [ ] design the page like IA tools, with a big text area for the transcript and some buttons to interact with it, like copy, clear, etc.
-
+        // - [x] Add a button to stop recording
+        // - [x] Add a button to clear the transcript
+        // - [x] change language to spanish
+        // - [x] input to write 
+        // - [x] design the page like IA tools, with a big text area for the transcript and some buttons to interact with it, like copy, clear, etc.
+        // - [x] Press and hold spacebar to record (like voice messages)
         // - [ ] explanation of how this can be used as a tool for IA, for example, what should press to start and stop recording, how to use the transcript, etc.
         // - [ ] attachs files and previews, for example, if the user says "attach file" it should open a file dialog and then show a preview of the file, if it's an image, show the image, if it's a pdf, show the first page, etc.
-        const selectLang = document.querySelector('.select-lang');
-        const inputPrompt = document.querySelector('input[type="text"]');
-        const chabotContainer = document.querySelector('.panel');
 
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const selectLang = document.querySelector('.select-lang');
+        const inputPrompt = document.getElementById('input-prompt');
+        const chabotContainer = document.querySelector('.panel');
+        const button = document.getElementById('button');
+        const transcriptElement = document.getElementById('transcript');
+
+        // ============================================
+        // STATE VARIABLES
+        // ============================================
         let spacePressed = false;
+        let selectedLang = 'en';
+        let recognition = null;
+        let isRecording = false;
+        let typingTimer = null;
+        let isTyping = false;
+        const typingDelay = 1000; // 1 segundo de inactividad para detener animación
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
         window.addEventListener('DOMContentLoaded', () => {
             if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
                 alert('Your browser does not support Speech Recognition. Please use Chrome or Edge.');
             }
         });
 
-        window.addEventListener("keydown", (event) => {
-
-            if (event.code === "Space" || event.key === " " || event.keyCode === 32) {
-                if (!spacePressed) {
-                    startRecord();
-
-                    spacePressed = true;
-
-                }
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        const autoResize = () => {
+            inputPrompt.style.height = 'auto';
+            inputPrompt.style.height = inputPrompt.scrollHeight + 'px';
+            
+            // Si supera 4 líneas (120px), activar scroll
+            if (inputPrompt.scrollHeight > 120) {
+                inputPrompt.style.height = '120px';
+                inputPrompt.classList.add('scrollable');
+            } else {
+                inputPrompt.classList.remove('scrollable');
             }
+        };
 
-            if (event.key === "Escape" || event.keyCode === 27) {
-                confirm("Do you want to clear the transcript?") && clearTranscript();
+        const clearTranscript = () => {
+            transcriptElement.textContent = '';
+            inputPrompt.value = '';
+            inputPrompt.style.height = 'auto'; // Resetear altura
+            inputPrompt.classList.remove('scrollable');
+            
+            // Limpiar estado de typing
+            clearTimeout(typingTimer);
+            chabotContainer.classList.remove('is-processing');
+            isTyping = false;
+        };
 
-            }
-        });
-
-        window.addEventListener("keyup", (event) => {
-            if (event.code === "Space" || event.key === " " || event.keyCode === 32) {
-                spacePressed = false;
-            }
-        });
-
-
-        let selectedLang = 'en';
-
-        inputPrompt.addEventListener("keydown", (event) => {
-            if (event.key !== "space" || event.keyCode !== 32) {
-                transcript.textContent += event.key;
-                chabotContainer.classList.add('is-processing');
-                setTimeout(() => {
-                    chabotContainer.classList.remove('is-processing');
-                }, 5000);
-
-            }
-
-
-        });
-
-        selectLang.addEventListener('change', (event) => {
-            selectedLang = event.target.value;
-        });
-
-
-
+        // ============================================
+        // SPEECH RECOGNITION FUNCTIONS
+        // ============================================
         const startRecord = () => {
+            // Evitar iniciar si ya está grabando
+            if (isRecording || recognition) {
+                return;
+            }
 
-            const button = document.getElementById('button');
+            isRecording = true;
             chabotContainer.classList.add('is-processing');
-            console.log(selectedLang);
             button.innerText = 'Recording...';
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = selectedLang === 'es' ? 'es-ES' : 'en-US';
-            recognition.interimResults = false;
+            recognition.interimResults = true;  // Resultados en tiempo real
             recognition.maxAlternatives = 1;
+            recognition.continuous = true;  // Grabación continua
 
             recognition.start();
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('transcript').textContent += transcript;
-                inputPrompt.value += transcript;
+                const lastResultIndex = event.results.length - 1;
+                const transcript = event.results[lastResultIndex][0].transcript;
+                
+                // Solo agregar al texto si es resultado final
+                if (event.results[lastResultIndex].isFinal) {
+                    transcriptElement.textContent += transcript + ' ';
+                    inputPrompt.value += transcript + ' ';
+                    autoResize(); // Ajustar altura del textarea
+                }
             };
-
 
             recognition.onend = () => {
-                button.innerText = 'Start Recording';
-                chabotContainer.classList.remove('is-processing');
+                stopRecord();
             };
+
             recognition.onerror = (event) => {
-                alert('Error occurred in recognition: ' + event.error);
+                console.error('Error occurred in recognition:', event.error);
+                if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                    alert('Error occurred in recognition: ' + event.error);
+                }
+                stopRecord();
             };
         };
 
-        const clearTranscript = () => {
-            document.getElementById('transcript').textContent = '';
-            inputPrompt.value = '';
-            transcript.textContent = '';
+        const stopRecord = () => {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            
+            isRecording = false;
+            button.innerText = 'Start Recording';
+            chabotContainer.classList.remove('is-processing');
         };
+
+        // ============================================
+        // EVENT LISTENERS - KEYBOARD
+        // ============================================
+        window.addEventListener("keydown", (event) => {
+            // No grabar si el input tiene focus o está escribiendo
+            if (document.activeElement === inputPrompt || isTyping) {
+                return;
+            }
+
+            // Iniciar grabación con Space (mantener presionado)
+            if ((event.code === "Space" || event.key === " " || event.keyCode === 32) && !spacePressed) {
+                event.preventDefault(); // Evitar scroll de la página
+                startRecord();
+                spacePressed = true;
+            }
+
+            // Limpiar transcript con Escape
+            if (event.key === "Escape" || event.keyCode === 27) {
+                confirm("Do you want to clear the transcript?") && clearTranscript();
+            }
+        });
+
+        window.addEventListener("keyup", (event) => {
+            // Detener grabación al soltar Space
+            if ((event.code === "Space" || event.key === " " || event.keyCode === 32) && spacePressed) {
+                stopRecord();
+                spacePressed = false;
+            }
+        });
+
+        // ============================================
+        // EVENT LISTENERS - INPUT
+        // ============================================
+        inputPrompt.addEventListener('input', autoResize);
+
+        inputPrompt.addEventListener("input", (event) => {
+            // Activar animación solo si no está escribiendo
+            if (!isTyping) {
+                chabotContainer.classList.add('is-processing');
+                isTyping = true;
+            }
+
+            // Limpiar el timer anterior
+            clearTimeout(typingTimer);
+
+            // Establecer nuevo timer para detectar cuando deje de escribir
+            typingTimer = setTimeout(() => {
+                chabotContainer.classList.remove('is-processing');
+                isTyping = false;
+            }, typingDelay);
+        });
+
+        // ============================================
+        // EVENT LISTENERS - SELECT LANGUAGE
+        // ============================================
+        selectLang.addEventListener('change', (event) => {
+            selectedLang = event.target.value;
+        });
     </script>
 
 </body>
