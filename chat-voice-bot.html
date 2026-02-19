@@ -77,8 +77,95 @@
 
 
     <style>
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(162, 0, 255, 0.1);
+            box-shadow: 0 2px 10px rgba(162, 0, 255, 0.05);
+            z-index: 999;
+        }
 
-        
+        .nav-title {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #CC00FF, #A200FF, #6A0DAD);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            font-weight: bolder;
+            text-transform: uppercase;
+            gap: 12px;
+        }
+
+        .beta-badge {
+            top: 10px;
+            left: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            /* background: linear-gradient(135deg, #CC00FF, #A200FF); */
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 1px 4px rgba(204, 0, 255, 0.3);
+            color: rgb(227, 13, 247);
+           
+        }
+
+        #button {
+            background: transparent;
+            border: 1.5px solid rgba(162, 0, 255, 0.4);
+            color: #6A0DAD;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            justify-content: center;
+        }
+
+        #button:hover {
+            border-color: #CC00FF;
+            background: rgba(204, 0, 255, 0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(162, 0, 255, 0.2);
+        }
+
+        #button:active {
+            transform: translateY(0);
+        }
+
+        #button.recording {
+            /* background: linear-gradient(135deg, #CC00FF, #A200FF); */
+            color: #A200FF;
+            border-color: rgba(162, 0, 255, 0.4);
+            box-shadow: 0 4px 16px rgba(204, 0, 255, 0.4);
+        }
+
+        body {
+            margin: 0;
+            padding-top: 70px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         .panel {
             position: absolute;
             margin: auto auto;
@@ -151,7 +238,8 @@
             resize: none;
             overflow-y: hidden;
             min-height: 40px;
-            max-height: 120px; /* 4 líneas aproximadamente (30px por línea) */
+            max-height: 120px;
+            /* 4 líneas aproximadamente (30px por línea) */
             line-height: 30px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             transition: height 0.2s ease;
@@ -256,28 +344,199 @@
                     0 0 30px rgba(162, 0, 255, 0.1);
             }
         }
-    </style>
-    <div>
-        <button id="button" onclick="startRecord()">Start Recording</button>
-        <p id="transcript"></p>
-    </div>
 
+        /* Voice Animation */
+        .voice-animation {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            gap: 8px;
+            align-items: center;
+            height: 100px;
+            z-index: 1000;
+        }
+
+        .voice-animation.active {
+            display: flex;
+        }
+
+        /* Voice Animation - Dentro del botón */
+        .voice-animation-button {
+            display: none;
+            gap: 3px;
+            align-items: center;
+            height: 14px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .voice-animation-button.active {
+            display: inline-flex;
+        }
+
+        /* Voice Animation - Panel inferior derecho */
+        .voice-animation-panel {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: none;
+            gap: 4px;
+            align-items: center;
+            height: 35px;  /* Ajustado para acomodar barras más altas */
+            z-index: 10;
+        }
+
+        .voice-animation-panel.active {
+            display: flex;
+        }
+
+        .voice-bar {
+            width: 6px;
+            height: 20px;
+            background: linear-gradient(180deg, #CC00FF, #A200FF);
+            border-radius: 10px;
+            animation: voice-wave 0.6s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(204, 0, 255, 0.5);
+        }
+
+        /* Barras pequeñas para el botón */
+        .voice-animation-button .voice-bar {
+            width: 2px;
+            height: 5px;
+        }
+
+        /* Barras medianas para el panel */
+        .voice-animation-panel .voice-bar {
+            width: 3px;
+            height: 10px;
+            animation: voice-wave-panel 0.6s ease-in-out infinite;
+        }
+
+        .voice-bar:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .voice-bar:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .voice-bar:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .voice-bar:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .voice-bar:nth-child(5) {
+            animation-delay: 0.2s;
+        }
+
+        .voice-bar:nth-child(6) {
+            animation-delay: 0.1s;
+        }
+
+        .voice-bar:nth-child(7) {
+            animation-delay: 0s;
+        }
+
+        @keyframes voice-wave {
+            0%, 100% {
+                height: 20px;
+            }
+
+            50% {
+                height: 80px;
+            }
+        }
+
+        /* Ajustes para barras del botón */
+        .voice-animation-button .voice-bar {
+            animation: voice-wave-small 0.6s ease-in-out infinite;
+        }
+
+        @keyframes voice-wave-small {
+            0%, 100% {
+                height: 5px;
+            }
+            50% {
+                height: 12px;
+            }
+        }
+
+        /* Ajustes para barras del panel - misma animación que el centro pero escalada */
+        @keyframes voice-wave-panel {
+            0%, 100% {
+                height: 10px;  /* 50% del tamaño del centro (20px) */
+            }
+            50% {
+                height: 40px;  /* 50% del tamaño del centro (80px) - mantiene proporción 4x */
+            }
+        }
+    </style>
+    <header>
+        <nav class="nav">
+            <h1 class="nav-title">
+                Charlie
+                <span class="beta-badge">Beta</span>
+            </h1>
+            <div>
+
+                <button id="button">
+                    <span id="button-text">Start Recording</span>
+                    <span class="voice-animation-button">
+                        <div class="voice-bar"></div>
+                        <div class="voice-bar"></div>
+                        <div class="voice-bar"></div>
+                        <div class="voice-bar"></div>
+                        <div class="voice-bar"></div>
+                    </span>
+                </button>
+                <select name="" id="" class="select-lang">
+                    <option value="es">es</option>
+                    <option value="en">en</option>
+                    <option value="pt">pt</option>
+                    <option value="de">de</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+    <div>
+    </div>
+    
     <main>
+        <p id="transcript"></p>
+        <div class="voice-animation">
+            <div class="voice-bar"></div>
+            <div class="voice-bar"></div>
+            <div class="voice-bar"></div>
+            <div class="voice-bar"></div>
+            <div class="voice-bar"></div>
+            <div class="voice-bar"></div>
+            <div class="voice-bar"></div>
+        </div>
         <section class="main panel">
             <textarea id="input-prompt" rows="1"
                 placeholder="Type your message here or press the spacebar to start recording your voice and convert it to text."></textarea>
             <input type="file">
             <div class="panel-buttons">
-                <button id="copy-button" onclick="copyTranscript()">Copy</button>
-                <button id="clear-button" onclick="clearTranscript()">Clear</button>
+                <button id="copy-button">Copy</button>
+                <button id="clear-button">Clear</button>
             </div>
-            <select name="" id="" class="select-lang">
-                <option value="en">en</option>
-                <option value="es">es</option>
-                <option value="pt">pt</option>
-                <option value="de">de</option>
-            </select>
+            
 
+            <!-- Voice Animation - Panel inferior derecho -->
+            <div class="voice-animation-panel">
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+            </div>
         </section>
     </main>
 
@@ -292,6 +551,9 @@
         // - [x] Press and hold spacebar to record (like voice messages)
         // - [ ] explanation of how this can be used as a tool for IA, for example, what should press to start and stop recording, how to use the transcript, etc.
         // - [ ] attachs files and previews, for example, if the user says "attach file" it should open a file dialog and then show a preview of the file, if it's an image, show the image, if it's a pdf, show the first page, etc.
+        // - [] save session in local storage, so the user can come back later and see the transcript, or even export it as a text file. when user do Enter + Shift, it should save the transcript in local storage and clear the textarea for a new session. also, there should be a button to see the saved sessions and export them as text files.
+        // - [] one or more session with different conversations, for example, if the user wants to have a conversation with the IA about a specific topic, they can create a new session and then switch between sessions.
+
 
         // ============================================
         // DOM ELEMENTS
@@ -300,13 +562,17 @@
         const inputPrompt = document.getElementById('input-prompt');
         const chabotContainer = document.querySelector('.panel');
         const button = document.getElementById('button');
+        const buttonText = document.getElementById('button-text');
         const transcriptElement = document.getElementById('transcript');
+        const voiceAnimation = document.querySelector('.voice-animation');
+        const voiceAnimationButton = document.querySelector('.voice-animation-button');
+        const voiceAnimationPanel = document.querySelector('.voice-animation-panel');
 
         // ============================================
         // STATE VARIABLES
         // ============================================
         let spacePressed = false;
-        let selectedLang = 'en';
+        let selectedLang = 'es';
         let recognition = null;
         let isRecording = false;
         let typingTimer = null;
@@ -328,7 +594,7 @@
         const autoResize = () => {
             inputPrompt.style.height = 'auto';
             inputPrompt.style.height = inputPrompt.scrollHeight + 'px';
-            
+
             // Si supera 4 líneas (120px), activar scroll
             if (inputPrompt.scrollHeight > 120) {
                 inputPrompt.style.height = '120px';
@@ -343,11 +609,31 @@
             inputPrompt.value = '';
             inputPrompt.style.height = 'auto'; // Resetear altura
             inputPrompt.classList.remove('scrollable');
-            
+
             // Limpiar estado de typing
             clearTimeout(typingTimer);
             chabotContainer.classList.remove('is-processing');
             isTyping = false;
+        };
+
+        const copyTranscript = () => {
+            const textToCopy = inputPrompt.value;
+            if (textToCopy) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        // Feedback visual opcional
+                        const copyBtn = document.getElementById('copy-button');
+                        const originalText = copyBtn.innerText;
+                        copyBtn.innerText = 'Copied!';
+                        setTimeout(() => {
+                            copyBtn.innerText = originalText;
+                        }, 1500);
+                    })
+                    .catch(err => {
+                        console.error('Error al copiar:', err);
+                        alert('Error al copiar al portapapeles');
+                    });
+            }
         };
 
         // ============================================
@@ -361,10 +647,14 @@
 
             isRecording = true;
             chabotContainer.classList.add('is-processing');
-            button.innerText = 'Recording...';
+            voiceAnimation.classList.add('active');
+            voiceAnimationButton.classList.add('active');
+            voiceAnimationPanel.classList.add('active');
+            button.classList.add('recording');
+            buttonText.innerText = 'Recording...';
 
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = selectedLang === 'es' ? 'es-ES' : 'en-US';
+            recognition.lang = selectedLang === 'es' ? 'es-ES' : selectLang.value + '-' + selectLang.value.toUpperCase(); 
             recognition.interimResults = true;  // Resultados en tiempo real
             recognition.maxAlternatives = 1;
             recognition.continuous = true;  // Grabación continua
@@ -374,7 +664,7 @@
             recognition.onresult = (event) => {
                 const lastResultIndex = event.results.length - 1;
                 const transcript = event.results[lastResultIndex][0].transcript;
-                
+
                 // Solo agregar al texto si es resultado final
                 if (event.results[lastResultIndex].isFinal) {
                     transcriptElement.textContent += transcript + ' ';
@@ -401,10 +691,14 @@
                 recognition.stop();
                 recognition = null;
             }
-            
+
             isRecording = false;
-            button.innerText = 'Start Recording';
+            buttonText.innerText = 'Start Recording';
+            button.classList.remove('recording');
             chabotContainer.classList.remove('is-processing');
+            voiceAnimation.classList.remove('active');
+            voiceAnimationButton.classList.remove('active');
+            voiceAnimationPanel.classList.remove('active');
         };
 
         // ============================================
@@ -460,10 +754,19 @@
         });
 
         // ============================================
+        // EVENT LISTENERS - BUTTONS
+        // ============================================
+        button.addEventListener('click', startRecord);
+        document.getElementById('copy-button').addEventListener('click', copyTranscript);
+        document.getElementById('clear-button').addEventListener('click', clearTranscript);
+
+        // ============================================
         // EVENT LISTENERS - SELECT LANGUAGE
         // ============================================
         selectLang.addEventListener('change', (event) => {
             selectedLang = event.target.value;
+            console.log(selectedLang);
+            
         });
     </script>
 
