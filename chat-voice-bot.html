@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice to Text</title>
+</head>
+
+<body>
+    <!-- <style>
+        :root {
+            --Obsidian-color: #05070A;
+            --DeepSlate-color: #1A202C;
+            --liquidGold-color: #D4AF37;
+            --ElectriCyan-color: #00F2FF;
+            --PhantomPurple-color: #6A0DAD;
+            --text-color: #e3e3e3
+        }
+
+        body {
+            /* background-color: var(--Obsidian-color); */
+            /* background-image: url("./city.png");
+            background-size: cover;
+            background-position: center; */
+            color: var(--ElectriCyan-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .panel {
+            bottom: 200px;
+            background-color: var(--Obsidian-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: rgba(63, 63, 63, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            background-color: transparent;
+            /* color: var(--ElectriCyan-color); */
+            font-size: 16px;
+            border: 1px solid;
+            color: var(--text-color)    ;
+            border-radius: 5px;
+            box-shadow:
+                0 0 5px rgba(0, 242, 255, 0.5),
+                0 0 15px rgba(0, 242, 255, 0.2),
+                0 0 30px rgba(0, 242, 255, 0.1);
+            transition: box-shadow 0.3s ease-in-out;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.8);
+        }
+    </style> -->
+
+
+    <style>
+
+        
+        .panel {
+            position: absolute;
+            margin: auto auto;
+            left: 0;
+            right: 0;
+            bottom: 100px;
+            width: 800px;
+            padding: 20px;
+            border: 1px solid white;
+            border-radius: 12px;
+            border: 1px solid rgba(162, 0, 255, 0.3);
+            box-shadow:
+                0 0 5px rgba(204, 0, 255, 0.5),
+                0 0 15px rgba(162, 0, 255, 0.2),
+                0 0 30px rgba(162, 0, 255, 0.1);
+            transition: box-shadow 0.3s ease-in-out;
+
+            /* background: rgba(0, 20, 30, 0.8); */
+            /* border: 1px solid rgba(0, 212, 255, 0.5);
+            border-radius: 12px;
+
+            /* EL SHADOW ESTILO STARK */
+            /* box-shadow:
+                0 0 10px rgba(0, 212, 255, 0.4),
+                0 0 30px rgba(0, 74, 89, 0.3),
+                inset 0 0 15px rgba(0, 212, 255, 0.1); */
+
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+        }
+
+        .panel:hover {
+            box-shadow:
+                0 0 20px rgba(0, 212, 255, 0.7),
+                0 0 50px rgba(0, 212, 255, 0.3);
+            border: 1px solid #00D4FF;
+
+            border: 1px solid rgba(204, 0, 255, 0.7);
+            box-shadow:
+                0 0 8px rgba(204, 0, 255, 0.5),
+                0 0 20px rgba(162, 0, 255, 0.3),
+                0 0 35px rgba(162, 0, 255, 0.15);
+        }
+
+        input[type="text"] {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            background-color: transparent;
+            /* color: var(--ElectriCyan-color); */
+            font-size: 16px;
+            color: var(--text-color);
+            border-radius: 5px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+        }
+
+        .is-processing {
+            animation: reactor-pulse-gold 1.5s infinite ease-in-out;
+            border: 1px solid rgba(204, 0, 255, 1);
+            animation: ultraviolet-pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes reactor-pulse {
+            0% {
+                box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 35px rgba(0, 212, 255, 0.8);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+            }
+        }
+
+        @keyframes reactor-pulse-red {
+            0% {
+                box-shadow:
+                    0 0 15px rgba(187, 10, 33, 0.4),
+                    0 0 30px rgba(187, 10, 33, 0.2);
+                border-color: rgba(187, 10, 33, 0.6);
+            }
+
+            50% {
+                box-shadow:
+                    0 0 35px rgba(255, 0, 0, 0.8),
+                    0 0 60px rgba(255, 0, 0, 0.4);
+                border-color: rgba(255, 0, 0, 1);
+            }
+
+            100% {
+                box-shadow:
+                    0 0 15px rgba(187, 10, 33, 0.4),
+                    0 0 30px rgba(187, 10, 33, 0.2);
+                border-color: rgba(187, 10, 33, 0.6);
+            }
+
+
+        }
+
+        @keyframes reactor-pulse-gold {
+            0% {
+                box-shadow:
+                    0 0 12px rgba(212, 175, 55, 0.3),
+                    0 0 25px rgba(212, 175, 55, 0.1);
+                border-color: rgba(212, 175, 55, 0.5);
+            }
+
+            50% {
+                box-shadow:
+                    0 0 40px rgba(255, 215, 0, 0.7),
+                    0 0 70px rgba(255, 215, 0, 0.3);
+                border-color: rgba(255, 215, 0, 1);
+            }
+
+            100% {
+                box-shadow:
+                    0 0 12px rgba(212, 175, 55, 0.3),
+                    0 0 25px rgba(212, 175, 55, 0.1);
+                border-color: rgba(212, 175, 55, 0.5);
+            }
+        }
+
+        @keyframes ultraviolet-pulse {
+            0% {
+                box-shadow:
+                    0 0 5px rgba(204, 0, 255, 0.5),
+                    0 0 15px rgba(162, 0, 255, 0.2),
+                    0 0 30px rgba(162, 0, 255, 0.1);
+            }
+
+            50% {
+                box-shadow:
+                    0 0 15px rgba(204, 0, 255, 0.8),
+                    0 0 40px rgba(162, 0, 255, 0.5),
+                    0 0 70px rgba(162, 0, 255, 0.3);
+                transform: translateY(-2px);
+            }
+
+            100% {
+                box-shadow:
+                    0 0 5px rgba(204, 0, 255, 0.5),
+                    0 0 15px rgba(162, 0, 255, 0.2),
+                    0 0 30px rgba(162, 0, 255, 0.1);
+            }
+        }
+    </style>
+    <div>
+        <button id="button" onclick="startRecord()">Start Recording</button>
+        <p id="transcript"></p>
+    </div>
+
+    <main>
+        <section class="main panel">
+            <input type="text"
+                placeholder="Type your message here or press the spacebar to start recording your voice and convert it to text.">
+            <input type="file">
+            <div class="panel-buttons">
+                <button id="copy-button" onclick="copyTranscript()">Copy</button>
+                <button id="clear-button" onclick="clearTranscript()">Clear</button>
+            </div>
+            <select name="" id="" class="select-lang">
+                <option value="en">en</option>
+                <option value="es">es</option>
+            </select>
+
+        </section>
+    </main>
+
+    <script type="text/javascript">
+
+        //ToDO List:
+        // - [ ] Add a button to stop recording
+        // - [ ] Add a button to clear the transcript
+        // - [ ] change language to spanish
+        // - [ ] input to write 
+        // - [ ] design the page like IA tools, with a big text area for the transcript and some buttons to interact with it, like copy, clear, etc.
+
+        // - [ ] explanation of how this can be used as a tool for IA, for example, what should press to start and stop recording, how to use the transcript, etc.
+        // - [ ] attachs files and previews, for example, if the user says "attach file" it should open a file dialog and then show a preview of the file, if it's an image, show the image, if it's a pdf, show the first page, etc.
+        const selectLang = document.querySelector('.select-lang');
+        const inputPrompt = document.querySelector('input[type="text"]');
+        const chabotContainer = document.querySelector('.panel');
+
+        let spacePressed = false;
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+                alert('Your browser does not support Speech Recognition. Please use Chrome or Edge.');
+            }
+        });
+
+        window.addEventListener("keydown", (event) => {
+
+            if (event.code === "Space" || event.key === " " || event.keyCode === 32) {
+                if (!spacePressed) {
+                    startRecord();
+
+                    spacePressed = true;
+
+                }
+            }
+
+            if (event.key === "Escape" || event.keyCode === 27) {
+                confirm("Do you want to clear the transcript?") && clearTranscript();
+
+            }
+        });
+
+        window.addEventListener("keyup", (event) => {
+            if (event.code === "Space" || event.key === " " || event.keyCode === 32) {
+                spacePressed = false;
+            }
+        });
+
+
+        let selectedLang = 'en';
+
+        inputPrompt.addEventListener("keydown", (event) => {
+            if (event.key !== "space" || event.keyCode !== 32) {
+                transcript.textContent += event.key;
+                chabotContainer.classList.add('is-processing');
+                setTimeout(() => {
+                    chabotContainer.classList.remove('is-processing');
+                }, 5000);
+
+            }
+
+
+        });
+
+        selectLang.addEventListener('change', (event) => {
+            selectedLang = event.target.value;
+        });
+
+
+
+        const startRecord = () => {
+
+            const button = document.getElementById('button');
+            chabotContainer.classList.add('is-processing');
+            console.log(selectedLang);
+            button.innerText = 'Recording...';
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = selectedLang === 'es' ? 'es-ES' : 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.start();
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('transcript').textContent += transcript;
+                inputPrompt.value += transcript;
+            };
+
+
+            recognition.onend = () => {
+                button.innerText = 'Start Recording';
+                chabotContainer.classList.remove('is-processing');
+            };
+            recognition.onerror = (event) => {
+                alert('Error occurred in recognition: ' + event.error);
+            };
+        };
+
+        const clearTranscript = () => {
+            document.getElementById('transcript').textContent = '';
+            inputPrompt.value = '';
+            transcript.textContent = '';
+        };
+    </script>
+
+</body>
+
+</html>
